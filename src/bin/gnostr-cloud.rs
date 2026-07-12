@@ -36,7 +36,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let _webview = WebViewBuilder::new().with_url(URL).build(&window)?;
 
-    #[allow(unreachable_code)]
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
         if let Event::WindowEvent {
@@ -48,9 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             let _ = trunk.wait();
             *control_flow = ControlFlow::Exit;
         }
-    });
-
-    Ok(())
+    })
 }
 
 #[cfg(not(feature = "wry-app"))]
