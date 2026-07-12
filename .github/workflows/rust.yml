@@ -31,3 +31,18 @@ jobs:
         cargo test --verbose --lib
     - name: Build web app
       run: trunk build --verbose
+    - name: Serve web app and verify content
+      run: |
+        trunk serve --address 127.0.0.1 --port 8080 --no-autoreload true --open false &
+        TRUNK_PID=$!
+        trap 'kill $TRUNK_PID' EXIT
+
+        for i in $(seq 1 30); do
+          if curl -fsS http://127.0.0.1:8080 > /tmp/trunk-index.html; then
+            break
+          fi
+          sleep 2
+        done
+
+        curl -fsS http://127.0.0.1:8080 | grep -F 'RandyMcMillan/gnostr-wasm'
+        curl -fsS http://127.0.0.1:8080 | grep -F 'rust.yml/badge.svg'
