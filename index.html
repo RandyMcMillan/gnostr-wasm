@@ -9,6 +9,7 @@
         height: 100%;
       }
       body {
+        position: relative;
         height: calc(100% - 40px);
         margin: 20px;
         display: flex;
@@ -28,7 +29,37 @@
         font-size: 16px;
         margin: 0px;
       }
+      .topbar {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
     </style>
   </head>
-  <body></body>
+  <body>
+    <div class="topbar">
+      <a
+        href="https://github.com/RandyMcMillan/gnostr-wasm"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <img
+          src="https://img.shields.io/badge/github.com%2FRandyMcMillan%2Fgnostr--wasm-181717?logo=github&logoColor=white&style=flat-square"
+          alt="RandyMcMillan/gnostr-wasm"
+        />
+      </a>
+      <a
+        class="badge"
+        href="https://github.com/RandyMcMillan/gnostr-wasm/actions/workflows/rust.yml"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <img
+          src="https://github.com/RandyMcMillan/gnostr-wasm/actions/workflows/rust.yml/badge.svg"
+          alt="Rust workflow status"
+        />
+      </a>
+    </div>
+  </body>
 </html>
