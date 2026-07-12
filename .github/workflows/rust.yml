@@ -19,7 +19,9 @@ jobs:
     - name: Add wasm target
       run: rustup target add wasm32-unknown-unknown
     - name: Install Trunk
-      run: cargo binstall trunk --locked --no-confirm
+      run: |
+        cargo binstall trunk --locked --no-confirm
+        cargo binstall gnostr --locked --no-confirm
     - name: Build
       run: cargo build --verbose
     - name: Run tests
