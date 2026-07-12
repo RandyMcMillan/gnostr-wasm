@@ -6,22 +6,37 @@
 //! [examples]: https://github.com/ratatui/ratatui/blob/main/examples
 //! [examples readme]: https://github.com/ratatui/ratatui/blob/main/examples/README.md
 
+#[cfg(feature = "wry-app")]
+mod wry_app;
+
+#[cfg(not(feature = "wry-app"))]
 use std::{cell::RefCell, io::Result, rc::Rc};
 
+#[cfg(not(feature = "wry-app"))]
 use app::App;
+#[cfg(not(feature = "wry-app"))]
 use backend::{BackendType, MultiBackendBuilder};
-use ratzilla::event::KeyCode;
-use ratzilla::WebRenderer;
+#[cfg(not(feature = "wry-app"))]
 use ratzilla::backend::webgl2::WebGl2BackendOptions;
+#[cfg(not(feature = "wry-app"))]
+use ratzilla::event::KeyCode;
+#[cfg(not(feature = "wry-app"))]
+use ratzilla::WebRenderer;
 
+#[cfg(not(feature = "wry-app"))]
 mod app;
+#[cfg(not(feature = "wry-app"))]
 mod backend;
+#[cfg(not(feature = "wry-app"))]
 mod fps;
-
+#[cfg(not(feature = "wry-app"))]
 mod effects;
+#[cfg(not(feature = "wry-app"))]
 mod ui;
+#[cfg(not(feature = "wry-app"))]
 mod utils;
 
+#[cfg(not(feature = "wry-app"))]
 fn main() -> Result<()> {
     let app_state = Rc::new(RefCell::new(App::new("Demo", true)));
 
@@ -65,4 +80,9 @@ fn main() -> Result<()> {
     });
 
     Ok(())
+}
+
+#[cfg(feature = "wry-app")]
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    wry_app::run()
 }
