@@ -21,9 +21,9 @@ jobs:
     - name: Install Trunk
       run: |
         cargo binstall trunk --locked --no-confirm
-    - name: Install gnostr
-      run: |
-        cargo binstall gnostr --locked --no-confirm
+    #- name: Install gnostr
+    #  run: |
+    #    cargo binstall gnostr --locked --no-confirm
     - name: Build
       run: cargo build --verbose
     - name: Run tests
