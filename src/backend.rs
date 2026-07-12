@@ -374,19 +374,23 @@ impl WebEventHandler for FpsTrackingBackend {
 ///
 /// # Example
 ///
-/// ```rust
-/// use examples_shared::backend::{BackendType, MultiBackendBuilder};
+/// ```no_run
+/// use demo_gnostr::backend::{BackendType, MultiBackendBuilder};
 /// use ratzilla::backend::canvas::CanvasBackendOptions;
 /// use ratzilla::backend::webgl2::WebGl2BackendOptions;
 /// use ratzilla::ratatui::TerminalOptions;
 ///
-/// let terminal = MultiBackendBuilder::with_fallback(BackendType::Dom)
-///     .canvas_options(CanvasBackendOptions::new().grid_id("terminal-id"))
-///     .webgl2_options(WebGl2BackendOptions::new().size((1200, 800)))
-///     .build_terminal()?;
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let terminal = MultiBackendBuilder::with_fallback(BackendType::Dom)
+///         .canvas_options(CanvasBackendOptions::new().grid_id("terminal-id"))
+///         .webgl2_options(WebGl2BackendOptions::new().size((1200, 800)))
+///         .build_terminal()?;
 ///
-/// // Get backend type if needed
-/// let backend_type = terminal.backend().backend_type();
+///     // Get backend type if needed
+///     let backend_type = terminal.backend().backend_type();
+///     let _ = backend_type;
+///     Ok(())
+/// }
 /// ```
 #[derive(Debug, Default)]
 pub struct MultiBackendBuilder {
@@ -464,14 +468,18 @@ impl MultiBackendBuilder {
     ///
     /// # Example
     ///
-    /// ```rust
-    /// use examples_shared::backend::{BackendType, MultiBackendBuilder};
-    /// let terminal = MultiBackendBuilder::with_fallback(BackendType::Canvas)
-    ///     .build_terminal()?;
+    /// ```no_run
+    /// use demo_gnostr::backend::{BackendType, MultiBackendBuilder};
     ///
-    /// // Get backend type if needed
-    /// let backend_type = terminal.backend().backend_type();
-    /// println!("Using {backend_type} backend");
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
+    ///     let terminal = MultiBackendBuilder::with_fallback(BackendType::Canvas)
+    ///         .build_terminal()?;
+    ///
+    ///     // Get backend type if needed
+    ///     let backend_type = terminal.backend().backend_type();
+    ///     println!("Using {backend_type} backend");
+    ///     Ok(())
+    /// }
     /// ```
     pub fn build_terminal(self) -> io::Result<Terminal<FpsTrackingBackend>> {
         let backend_type = parse_backend_from_url(self.default_backend);
