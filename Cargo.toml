@@ -4,6 +4,19 @@ version = "0.0.2"
 edition = "2021"
 publish = false
 
+[package.metadata.bundle.bin.gnostr-wasm]
+name = "gnostr-wasm"
+identifier = "org.gnostr.gnostr-wasm"
+icon = ["icons/icon.png"]
+category = "Utility"
+short_description = "gnostr-wasm"
+[package.metadata.bundle.bin.gnostr-cloud]
+name = "gnostr-cloud"
+identifier = "org.gnostr.gnostr-cloud"
+icon = ["icons/icon.png"]
+category = "Utility"
+short_description = "gnostr-cloud"
+
 [features]
 wry-app = ["dep:tao", "dep:wry"]
 
