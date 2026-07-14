@@ -15,7 +15,6 @@ ensure_trunk
 
 trunk build --release --dist dist
 cargo bundle --bin gnostr-wasm --release --features wry-app
-cargo bundle --bin gnostr-cloud --release --features wry-app
 
 printf 'Built %s\n' "target/release/bundle/"
 printf 'Built %s\n' "dist/"

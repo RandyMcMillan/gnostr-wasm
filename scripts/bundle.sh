@@ -120,7 +120,7 @@ test_bundle() {
     exit 1
   fi
 
-  index_url="file://${app_path}/Contents/Resources/dist/index.html"
+  index_url="$(python3 -c 'from pathlib import Path; import sys; print(Path(sys.argv[1]).resolve().as_uri())' "${app_path}/Contents/Resources/dist/index.html")"
   html="$(curl -fsS "$index_url")"
   printf '%s' "$html" | grep -F '<title>Ratzilla Demo</title>'
   printf '%s' "$html" | grep -F 'data-bin="gnostr-wasm"'

@@ -15,6 +15,7 @@ use tao::{
     event_loop::{ControlFlow, EventLoopBuilder},
     window::{Window, WindowBuilder},
 };
+use url::Url;
 #[cfg(any(
     target_os = "linux",
     target_os = "dragonfly",
@@ -189,7 +190,9 @@ fn bundled_index_path() -> Result<Option<PathBuf>, io::Error> {
 }
 
 fn file_url(path: PathBuf) -> String {
-    format!("file://{}", path.to_string_lossy())
+    Url::from_file_path(path)
+        .expect("bundled index.html should convert to a file URL")
+        .to_string()
 }
 
 #[cfg(any(
