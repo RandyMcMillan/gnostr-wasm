@@ -13,22 +13,27 @@ mod wry_app;
 
 use std::error::Error;
 
-#[cfg(not(feature = "wry-app"))]
+#[cfg(all(not(feature = "wry-app"), target_arch = "wasm32"))]
 use std::{cell::RefCell, rc::Rc};
 
-#[cfg(not(feature = "wry-app"))]
+#[cfg(all(not(feature = "wry-app"), target_arch = "wasm32"))]
 use gnostr_wasm::app::App;
-#[cfg(not(feature = "wry-app"))]
+#[cfg(all(not(feature = "wry-app"), target_arch = "wasm32"))]
 use gnostr_wasm::backend::{BackendType, MultiBackendBuilder};
-#[cfg(not(feature = "wry-app"))]
+#[cfg(all(not(feature = "wry-app"), target_arch = "wasm32"))]
 use ratzilla::backend::webgl2::WebGl2BackendOptions;
-#[cfg(not(feature = "wry-app"))]
+#[cfg(all(not(feature = "wry-app"), target_arch = "wasm32"))]
 use ratzilla::event::KeyCode;
-#[cfg(not(feature = "wry-app"))]
+#[cfg(all(not(feature = "wry-app"), target_arch = "wasm32"))]
 use ratzilla::WebRenderer;
 
-#[cfg(not(feature = "wry-app"))]
+#[cfg(all(not(feature = "wry-app"), target_arch = "wasm32"))]
 fn main() -> Result<(), Box<dyn Error>> {
+    browser_main()
+}
+
+#[cfg(all(not(feature = "wry-app"), target_arch = "wasm32"))]
+fn browser_main() -> Result<(), Box<dyn Error>> {
     let app_state = Rc::new(RefCell::new(App::new("Demo", true)));
 
     let webgl2_options = WebGl2BackendOptions::new()
@@ -76,4 +81,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 #[cfg(feature = "wry-app")]
 fn main() -> Result<(), Box<dyn Error>> {
     wry_app::run()
+}
+
+#[cfg(all(not(feature = "wry-app"), not(target_arch = "wasm32")))]
+fn main() {
+    println!(
+        "gnostr-wasm's browser entrypoint is for wasm32.\n\
+         Run `trunk serve` or `trunk build` for the Ratzilla web app."
+    );
 }
