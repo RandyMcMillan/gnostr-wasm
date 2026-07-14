@@ -138,7 +138,10 @@ test_bundle() {
   fi
 
   printf '%s' "$html" | grep -F '<title>Ratzilla Demo</title>'
-  printf '%s' "$html" | grep -F 'data-bin="gnostr-wasm"'
+  js_path="$(printf '%s' "$html" | grep -oE "./[^']+\.js" | head -n 1)"
+  wasm_path="$(printf '%s' "$html" | grep -oE "./[^']+_bg\.wasm" | head -n 1)"
+  curl -fsS "$url/${js_path#./}" >/dev/null
+  curl -fsS "$url/${wasm_path#./}" >/dev/null
 
   cleanup
   trap - EXIT

@@ -244,6 +244,7 @@ fn spawn_bundled_server(dist_root: PathBuf) -> Result<BundledServer, io::Error> 
 }
 
 fn handle_http_request(mut stream: std::net::TcpStream, dist_root: &PathBuf) -> Result<(), io::Error> {
+    stream.set_nonblocking(false)?;
     let mut buffer = [0_u8; 4096];
     let bytes_read = stream.read(&mut buffer)?;
     let request = String::from_utf8_lossy(&buffer[..bytes_read]);
