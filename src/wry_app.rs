@@ -166,7 +166,7 @@ fn wait_for_server() -> Result<(), io::Error> {
     target_os = "openbsd",
     target_os = "netbsd"
 ))]
-fn create_webview(window: &Window) -> Result<wry::WebViewBuilder<'_>, wry::Error> {
+fn create_webview(_window: &Window) -> Result<wry::WebViewBuilder<'_>, wry::Error> {
     Ok(WebViewBuilder::new_gtk(window.default_vbox().unwrap()))
 }
 
@@ -177,6 +177,6 @@ fn create_webview(window: &Window) -> Result<wry::WebViewBuilder<'_>, wry::Error
     target_os = "openbsd",
     target_os = "netbsd"
 )))]
-fn create_webview(window: &Window) -> Result<wry::WebViewBuilder<'_>, wry::Error> {
+fn create_webview(_window: &Window) -> Result<wry::WebViewBuilder<'_>, wry::Error> {
     Ok(WebViewBuilder::new())
 }
