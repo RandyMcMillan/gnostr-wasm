@@ -4,7 +4,7 @@ use std::{
     io,
     io::{Read, Write},
     net::{SocketAddr, TcpStream},
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::{Child, Command, Stdio},
     sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex},
     thread::{self, JoinHandle},
@@ -17,7 +17,6 @@ use tao::{
     event_loop::{ControlFlow, EventLoopBuilder},
     window::{Window, WindowBuilder},
 };
-use url::Url;
 #[cfg(any(
     target_os = "linux",
     target_os = "dragonfly",
@@ -277,11 +276,11 @@ fn handle_http_request(mut stream: std::net::TcpStream, dist_root: &PathBuf) -> 
 
 fn safe_dist_path(dist_root: &PathBuf, request_path: &str) -> PathBuf {
     let mut path = PathBuf::new();
-    for component in std::path::Path::new(request_path).components() {
+    for component in Path::new(request_path).components() {
         use std::path::Component;
         match component {
             Component::Normal(part) => path.push(part),
-            Component::CurDir => {}
+            Component::CurDir | Component::RootDir => {}
             _ => return dist_root.join("__invalid__"),
         }
     }
