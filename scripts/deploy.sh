@@ -46,6 +46,7 @@ done
 
 root="$(repo_root)"
 cd "$root"
+mkdir -p "$out_dir"
 
 if [[ "$skip_build" == false ]]; then
   "$root/scripts/build.sh"
@@ -94,4 +95,3 @@ if [[ -n "$tag" ]]; then
 
   gh release upload "$tag" "$cloud_archive" "$wasm_archive" --clobber
 fi
-

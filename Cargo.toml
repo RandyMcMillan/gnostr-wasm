@@ -10,12 +10,37 @@ identifier = "org.gnostr.gnostr-wasm"
 icon = ["icons/icon.png"]
 category = "Utility"
 short_description = "gnostr-wasm"
+
 [package.metadata.bundle.bin.gnostr-cloud]
 name = "gnostr-cloud"
 identifier = "org.gnostr.gnostr-cloud"
 icon = ["icons/icon.png"]
 category = "Utility"
 short_description = "gnostr-cloud"
+
+[package.metadata.bundle.example.goodbye]
+name = "Goodbye"
+identifier = "io.github.burtonageo.cargo-bundle.goodbye"
+icon = ["examples/goodbye/icon32x32.png", "examples/goodbye/icon128x128.png"]
+category = "Developer Tool"
+short_description = "An example CLI application showing PNG icon bundling"
+long_description = """
+A simple command-line application that demonstrates bundling a Rust binary
+with PNG icons using cargo-bundle.
+"""
+
+[package.metadata.bundle.example.hello]
+name = "hello"
+identifier = "io.github.burtonageo.cargo-bundle.hello"
+icon = ["examples/hello/icon.svg", "examples/hello/icon*.png"]
+category = "Utility"
+short_description = "An example of a bundled application"
+long_description = """
+A trivial application that just displays a blank window with
+a title bar.  It serves as an example of an application that
+can be bundled with cargo-bundle, as well as a test-case for
+cargo-bundle's support for bundling crate examples.
+"""
 
 [features]
 wry-app = ["dep:tao", "dep:wry"]
@@ -40,3 +65,15 @@ web-sys = { version = "0.3.81", features = [
 ] }
 web-time = "1.1.0"
 wry = { version = "0.55.1", optional = true }
+
+
+[dev-dependencies]
+winit = "0.30.13"
+
+[[example]]
+name = "hello"
+path = "examples/hello/main.rs"
+
+[[example]]
+name = "goodbye"
+path = "examples/goodbye/main.rs"
