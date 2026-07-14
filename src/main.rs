@@ -11,6 +11,7 @@
 #[cfg(feature = "wry-app")]
 mod wry_app;
 
+#[cfg(any(feature = "wry-app", all(not(feature = "wry-app"), target_arch = "wasm32")))]
 use std::error::Error;
 
 #[cfg(all(not(feature = "wry-app"), target_arch = "wasm32"))]
