@@ -9,13 +9,15 @@
 #[cfg(feature = "wry-app")]
 mod wry_app;
 
-#[cfg(not(feature = "wry-app"))]
-use std::{cell::RefCell, io::Result, rc::Rc};
+use std::error::Error;
 
 #[cfg(not(feature = "wry-app"))]
-use app::App;
+use std::{cell::RefCell, rc::Rc};
+
 #[cfg(not(feature = "wry-app"))]
-use backend::{BackendType, MultiBackendBuilder};
+use gnostr_wasm::app::App;
+#[cfg(not(feature = "wry-app"))]
+use gnostr_wasm::backend::{BackendType, MultiBackendBuilder};
 #[cfg(not(feature = "wry-app"))]
 use ratzilla::backend::webgl2::WebGl2BackendOptions;
 #[cfg(not(feature = "wry-app"))]
@@ -24,20 +26,7 @@ use ratzilla::event::KeyCode;
 use ratzilla::WebRenderer;
 
 #[cfg(not(feature = "wry-app"))]
-mod app;
-#[cfg(not(feature = "wry-app"))]
-mod backend;
-#[cfg(not(feature = "wry-app"))]
-mod fps;
-#[cfg(not(feature = "wry-app"))]
-mod effects;
-#[cfg(not(feature = "wry-app"))]
-mod ui;
-#[cfg(not(feature = "wry-app"))]
-mod utils;
-
-#[cfg(not(feature = "wry-app"))]
-fn main() -> Result<()> {
+fn main() -> Result<(), Box<dyn Error>> {
     let app_state = Rc::new(RefCell::new(App::new("Demo", true)));
 
     let webgl2_options = WebGl2BackendOptions::new()
@@ -76,13 +65,13 @@ fn main() -> Result<()> {
     terminal.draw_web(move |f| {
         let mut app_state = app_state.borrow_mut();
         let elapsed = app_state.on_tick();
-        ui::draw(elapsed, f, &mut app_state);
+        gnostr_wasm::ui::draw(elapsed, f, &mut app_state);
     });
 
     Ok(())
 }
 
 #[cfg(feature = "wry-app")]
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     wry_app::run()
 }
