@@ -18,6 +18,7 @@ identifier = "org.gnostr.gnostr-wasm"
 icon = ["icons/icon.png"]
 category = "Utility"
 short_description = "gnostr-wasm"
+resources = ["dist"]
 
 [package.metadata.bundle.bin.gnostr-cloud]
 name = "gnostr-cloud"
@@ -25,6 +26,7 @@ identifier = "org.gnostr.gnostr-cloud"
 icon = ["icons/icon.png"]
 category = "Utility"
 short_description = "gnostr-cloud"
+resources = ["dist"]
 
 [package.metadata.bundle.example.goodbye]
 name = "Goodbye"
