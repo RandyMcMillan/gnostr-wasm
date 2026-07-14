@@ -2,7 +2,15 @@
 name = "gnostr-wasm"
 version = "0.0.2"
 edition = "2021"
+description = "Ratzilla web and wry desktop apps for gnostr"
 publish = false
+
+[package.metadata.bundle]
+name = "gnostr-wasm"
+identifier = "org.gnostr.gnostr-wasm"
+icon = ["icons/icon.png"]
+category = "Utility"
+short_description = "gnostr-wasm"
 
 [package.metadata.bundle.bin.gnostr-wasm]
 name = "gnostr-wasm"

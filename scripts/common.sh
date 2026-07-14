@@ -22,7 +22,64 @@ ensure_trunk() {
   cargo install trunk --locked
 }
 
-host_triple() {
-  rustc -vV | awk '/^host: / { print $2; exit }'
+ensure_cargo_bundle() {
+  if command -v cargo-bundle >/dev/null 2>&1; then
+    return
+  fi
+
+  cargo install cargo-bundle --locked
 }
 
+host_triple() {
+  local line
+  while IFS= read -r line; do
+    case "$line" in
+      host:*)
+        printf '%s\n' "${line#host: }"
+        return
+        ;;
+    esac
+  done < <(rustc -vV)
+
+  return 1
+}
+
+bundle_artifact_path() {
+  local binary_name="$1"
+  local bundle_root="${2:-target/release/bundle}"
+  local os_name
+  os_name="$(uname -s)"
+
+  case "$os_name" in
+    Darwin)
+      local artifact
+      artifact="$(find "$bundle_root" -type f -name "${binary_name}.dmg" -print -quit)"
+      if [[ -n "$artifact" ]]; then
+        printf '%s\n' "$artifact"
+        return
+      fi
+      find "$bundle_root" -type d -name "${binary_name}.app" -print -quit
+      ;;
+    Linux)
+      local artifact
+      artifact="$(find "$bundle_root" -type f -name "${binary_name}.deb" -print -quit)"
+      if [[ -n "$artifact" ]]; then
+        printf '%s\n' "$artifact"
+        return
+      fi
+      find "$bundle_root" -type f -name "${binary_name}.AppImage" -print -quit
+      ;;
+    MINGW*|MSYS*|CYGWIN*|Windows_NT)
+      local artifact
+      artifact="$(find "$bundle_root" -type f -name "${binary_name}.msi" -print -quit)"
+      if [[ -n "$artifact" ]]; then
+        printf '%s\n' "$artifact"
+        return
+      fi
+      find "$bundle_root" -type f -name "${binary_name}.exe" -print -quit
+      ;;
+    *)
+      find "$bundle_root" -type f -name "${binary_name}*" -print -quit
+      ;;
+  esac
+}

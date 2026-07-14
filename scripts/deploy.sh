@@ -54,11 +54,19 @@ fi
 
 host="$(host_triple)"
 release_dir="$out_dir/$host"
-cloud_bin="target/release/gnostr-cloud"
+bundle_root="target/release/bundle"
 wasm_dist="dist"
 
-if [[ ! -x "$cloud_bin" ]]; then
-  echo "Missing $cloud_bin; run scripts/build.sh first or omit --skip-build." >&2
+cloud_artifact="$(bundle_artifact_path gnostr-cloud "$bundle_root")"
+wasm_artifact="$(bundle_artifact_path gnostr-wasm "$bundle_root")"
+
+if [[ -z "$cloud_artifact" ]]; then
+  echo "Missing gnostr-cloud bundle in $bundle_root; run scripts/build.sh first or omit --skip-build." >&2
+  exit 1
+fi
+
+if [[ -z "$wasm_artifact" ]]; then
+  echo "Missing gnostr-wasm bundle in $bundle_root; run scripts/build.sh first or omit --skip-build." >&2
   exit 1
 fi
 
@@ -68,20 +76,27 @@ if [[ ! -d "$wasm_dist" ]]; then
 fi
 
 rm -rf "$release_dir"
-mkdir -p "$release_dir/gnostr-wasm"
+mkdir -p "$release_dir"
 
-cp "$cloud_bin" "$release_dir/gnostr-cloud"
-cp -R "$wasm_dist"/. "$release_dir/gnostr-wasm/"
+cloud_name="$(basename "$cloud_artifact")"
+wasm_name="$(basename "$wasm_artifact")"
+
+cp -R "$cloud_artifact" "$release_dir/$cloud_name"
+cp -R "$wasm_artifact" "$release_dir/$wasm_name"
+cp -R "$wasm_dist" "$release_dir/gnostr-wasm-web"
 
 cloud_archive="$out_dir/gnostr-cloud-$host.tar.gz"
 wasm_archive="$out_dir/gnostr-wasm-$host.tar.gz"
+web_archive="$out_dir/gnostr-wasm-web-$host.tar.gz"
 
-tar -C "$release_dir" -czf "$cloud_archive" gnostr-cloud
-tar -C "$release_dir/gnostr-wasm" -czf "$wasm_archive" .
+tar -C "$release_dir" -czf "$cloud_archive" "$cloud_name"
+tar -C "$release_dir" -czf "$wasm_archive" "$wasm_name"
+tar -C "$release_dir" -czf "$web_archive" gnostr-wasm-web
 
 printf 'Staged %s\n' "$release_dir"
 printf 'Packed %s\n' "$cloud_archive"
 printf 'Packed %s\n' "$wasm_archive"
+printf 'Packed %s\n' "$web_archive"
 
 if [[ -n "$tag" ]]; then
   if ! command -v gh >/dev/null 2>&1; then
@@ -93,5 +108,5 @@ if [[ -n "$tag" ]]; then
     gh release create "$tag" --title "$tag" --notes "Automated release for $tag"
   fi
 
-  gh release upload "$tag" "$cloud_archive" "$wasm_archive" --clobber
+  gh release upload "$tag" "$cloud_archive" "$wasm_archive" "$web_archive" --clobber
 fi
