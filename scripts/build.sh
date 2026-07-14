@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+##lsof -nP -iTCP:8080 -sTCP:LISTEN
+
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 root="$(repo_root)"

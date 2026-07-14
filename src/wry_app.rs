@@ -2,6 +2,7 @@ use std::{
     error::Error,
     io,
     net::{SocketAddr, TcpStream},
+    path::PathBuf,
     process::{Child, Command, Stdio},
     sync::{Arc, Mutex},
     thread,
@@ -36,15 +37,13 @@ use wry::WebViewBuilder;
 
 const HOST: &str = "127.0.0.1";
 const PORT: u16 = 8080;
-const URL: &str = "http://127.0.0.1:8080";
 
 enum UserEvent {
     MenuEvent(MenuEvent),
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
-    let server = Arc::new(Mutex::new(Some(spawn_trunk_serve()?)));
-    wait_for_server()?;
+    let app_source = app_source()?;
 
     let mut event_loop_builder = EventLoopBuilder::<UserEvent>::with_user_event();
 
@@ -92,9 +91,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         menu_bar.init_for_nsapp();
     }
 
-    let _webview = create_webview(&window)?.with_url(URL).build(&window)?;
+    let _webview = create_webview(&window)?.with_url(&app_source.url).build(&window)?;
 
-    let server = Arc::clone(&server);
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
 
@@ -102,12 +100,12 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
-            } => stop_server(&server, control_flow),
+            } => stop_server(&app_source.server, control_flow),
             Event::UserEvent(UserEvent::MenuEvent(event)) => {
                 if event.id() == about_item.id() {
                     println!("gnostr-wasm: native About menu selected");
                 } else if event.id() == quit_item.id() {
-                    stop_server(&server, control_flow);
+                    stop_server(&app_source.server, control_flow);
                 }
             }
             _ => {}
@@ -157,6 +155,41 @@ fn wait_for_server() -> Result<(), io::Error> {
         io::ErrorKind::TimedOut,
         "trunk serve did not start on 127.0.0.1:8080",
     ))
+}
+
+struct AppSource {
+    url: String,
+    server: Arc<Mutex<Option<Child>>>,
+}
+
+fn app_source() -> Result<AppSource, Box<dyn Error>> {
+    if let Some(index) = bundled_index_path()? {
+        return Ok(AppSource {
+            url: file_url(index),
+            server: Arc::new(Mutex::new(None)),
+        });
+    }
+
+    let server = Arc::new(Mutex::new(Some(spawn_trunk_serve()?)));
+    wait_for_server()?;
+
+    Ok(AppSource {
+        url: format!("http://{HOST}:{PORT}"),
+        server,
+    })
+}
+
+fn bundled_index_path() -> Result<Option<PathBuf>, io::Error> {
+    let exe = std::env::current_exe()?;
+    let Some(contents_dir) = exe.parent().and_then(|p| p.parent()) else {
+        return Ok(None);
+    };
+    let index = contents_dir.join("Resources").join("dist").join("index.html");
+    Ok(index.exists().then_some(index))
+}
+
+fn file_url(path: PathBuf) -> String {
+    format!("file://{}", path.to_string_lossy())
 }
 
 #[cfg(any(

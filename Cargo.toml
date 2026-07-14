@@ -20,24 +20,24 @@ category = "Utility"
 short_description = "gnostr-wasm"
 resources = ["dist"]
 
-[package.metadata.bundle.bin.gnostr-cloud]
-name = "gnostr-cloud"
-identifier = "org.gnostr.gnostr-cloud"
-icon = ["icons/icon.png"]
-category = "Utility"
-short_description = "gnostr-cloud"
-resources = ["dist"]
-
-[package.metadata.bundle.example.goodbye]
-name = "Goodbye"
-identifier = "io.github.burtonageo.cargo-bundle.goodbye"
-icon = ["examples/goodbye/icon32x32.png", "examples/goodbye/icon128x128.png"]
-category = "Developer Tool"
-short_description = "An example CLI application showing PNG icon bundling"
-long_description = """
-A simple command-line application that demonstrates bundling a Rust binary
-with PNG icons using cargo-bundle.
-"""
+## [package.metadata.bundle.bin.gnostr-cloud]
+## name = "gnostr-cloud"
+## identifier = "org.gnostr.gnostr-cloud"
+## icon = ["icons/icon.png"]
+## category = "Utility"
+## short_description = "gnostr-cloud"
+## resources = ["dist"]
+## 
+## [package.metadata.bundle.example.goodbye]
+## name = "Goodbye"
+## identifier = "io.github.burtonageo.cargo-bundle.goodbye"
+## icon = ["examples/goodbye/icon32x32.png", "examples/goodbye/icon128x128.png"]
+## category = "Developer Tool"
+## short_description = "An example CLI application showing PNG icon bundling"
+## long_description = """
+## A simple command-line application that demonstrates bundling a Rust binary
+## with PNG icons using cargo-bundle.
+## """
 
 [package.metadata.bundle.example.hello]
 name = "hello"
