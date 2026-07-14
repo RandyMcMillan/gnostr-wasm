@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 //! # [Ratatui] Original Demo example
 //!
 //! The latest version of this example is available in the [examples] folder in the upstream.

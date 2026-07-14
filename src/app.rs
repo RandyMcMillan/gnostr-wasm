@@ -260,7 +260,7 @@ impl<'a> App<'a> {
         App {
             title,
             should_quit: false,
-            tabs: TabsState::new(vec!["Tab0", "Tab1", "Tab2"]),
+            tabs: TabsState::new(vec!["Home", "About", "Status", "Theme"]),
             show_chart: true,
             progress: 0.0,
             sparkline: Signal {

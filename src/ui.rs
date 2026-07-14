@@ -29,8 +29,9 @@ pub fn draw(elapsed: Duration, frame: &mut Frame, app: &mut App) {
     frame.render_widget(tabs, chunks[0]);
     match app.tabs.index {
         0 => draw_first_tab(frame, app, chunks[1]),
-        1 => draw_second_tab(frame, app, chunks[1]),
-        2 => draw_third_tab(frame, app, chunks[1]),
+        1 => draw_about_tab(frame, chunks[1]),
+        2 => draw_second_tab(frame, app, chunks[1]),
+        3 => draw_third_tab(frame, app, chunks[1]),
         _ => {}
     };
     // let big_text = BigText::builder()
@@ -59,6 +60,19 @@ fn draw_first_tab(frame: &mut Frame, app: &mut App, area: Rect) {
     draw_gauges(frame, app, chunks[0]);
     draw_charts(frame, app, chunks[1]);
     draw_text(frame, chunks[2]);
+}
+
+fn draw_about_tab(frame: &mut Frame, area: Rect) {
+    let block = Block::bordered().title("About");
+    let text = vec![
+        text::Line::from("gnostr-wasm is a Ratzilla demo app with a tabbed menu bar."),
+        text::Line::from(""),
+        text::Line::from("Use the left and right arrow keys to move between Home, About, Status, and Theme."),
+        text::Line::from(""),
+        text::Line::from("This view is where the app description, links, and quick start notes can live."),
+    ];
+    let paragraph = Paragraph::new(text).block(block).wrap(Wrap { trim: true });
+    frame.render_widget(paragraph, area);
 }
 
 fn draw_gauges(frame: &mut Frame, app: &mut App, area: Rect) {
