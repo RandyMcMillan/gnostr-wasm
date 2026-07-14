@@ -1,11 +1,13 @@
 use std::{
+    fs,
     error::Error,
     io,
+    io::{Read, Write},
     net::{SocketAddr, TcpStream},
     path::PathBuf,
     process::{Child, Command, Stdio},
-    sync::{Arc, Mutex},
-    thread,
+    sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex},
+    thread::{self, JoinHandle},
     time::Duration,
 };
 
@@ -114,10 +116,17 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     });
 }
 
-fn stop_server(server: &Arc<Mutex<Option<Child>>>, control_flow: &mut ControlFlow) {
-    if let Some(mut child) = server.lock().ok().and_then(|mut slot| slot.take()) {
-        let _ = child.kill();
-        let _ = child.wait();
+fn stop_server(server: &Arc<Mutex<Option<ServerHandle>>>, control_flow: &mut ControlFlow) {
+    if let Some(handle) = server.lock().ok().and_then(|mut slot| slot.take()) {
+        match handle {
+            ServerHandle::Trunk(mut child) => {
+                let _ = child.kill();
+                let _ = child.wait();
+            }
+            ServerHandle::Bundled(server) => {
+                server.stop();
+            }
+        }
     }
     *control_flow = ControlFlow::Exit;
 }
@@ -158,20 +167,40 @@ fn wait_for_server() -> Result<(), io::Error> {
     ))
 }
 
+enum ServerHandle {
+    Trunk(Child),
+    Bundled(BundledServer),
+}
+
+struct BundledServer {
+    shutdown: Arc<AtomicBool>,
+    join: Mutex<Option<JoinHandle<()>>>,
+}
+
+impl BundledServer {
+    fn stop(self) {
+        self.shutdown.store(true, Ordering::SeqCst);
+        if let Some(join) = self.join.lock().ok().and_then(|mut slot| slot.take()) {
+            let _ = join.join();
+        }
+    }
+}
+
 struct AppSource {
     url: String,
-    server: Arc<Mutex<Option<Child>>>,
+    server: Arc<Mutex<Option<ServerHandle>>>,
 }
 
 fn app_source() -> Result<AppSource, Box<dyn Error>> {
     if let Some(index) = bundled_index_path()? {
+        let server = spawn_bundled_server(index.parent().unwrap().to_path_buf())?;
         return Ok(AppSource {
-            url: file_url(index),
-            server: Arc::new(Mutex::new(None)),
+            url: format!("http://{HOST}:{PORT}"),
+            server: Arc::new(Mutex::new(Some(ServerHandle::Bundled(server)))),
         });
     }
 
-    let server = Arc::new(Mutex::new(Some(spawn_trunk_serve()?)));
+    let server = Arc::new(Mutex::new(Some(ServerHandle::Trunk(spawn_trunk_serve()?))));
     wait_for_server()?;
 
     Ok(AppSource {
@@ -189,10 +218,103 @@ fn bundled_index_path() -> Result<Option<PathBuf>, io::Error> {
     Ok(index.exists().then_some(index))
 }
 
-fn file_url(path: PathBuf) -> String {
-    Url::from_file_path(path)
-        .expect("bundled index.html should convert to a file URL")
-        .to_string()
+fn spawn_bundled_server(dist_root: PathBuf) -> Result<BundledServer, io::Error> {
+    let listener = std::net::TcpListener::bind((HOST, PORT))?;
+    listener.set_nonblocking(true)?;
+
+    let shutdown = Arc::new(AtomicBool::new(false));
+    let shutdown_flag = Arc::clone(&shutdown);
+    let join = thread::spawn(move || {
+        while !shutdown_flag.load(Ordering::SeqCst) {
+            match listener.accept() {
+                Ok((stream, _)) => {
+                    let _ = handle_http_request(stream, &dist_root);
+                }
+                Err(err) if err.kind() == io::ErrorKind::WouldBlock => {
+                    thread::sleep(Duration::from_millis(20));
+                }
+                Err(_) => break,
+            }
+        }
+    });
+
+    Ok(BundledServer {
+        shutdown,
+        join: Mutex::new(Some(join)),
+    })
+}
+
+fn handle_http_request(mut stream: std::net::TcpStream, dist_root: &PathBuf) -> Result<(), io::Error> {
+    let mut buffer = [0_u8; 4096];
+    let bytes_read = stream.read(&mut buffer)?;
+    let request = String::from_utf8_lossy(&buffer[..bytes_read]);
+    let path = request
+        .lines()
+        .next()
+        .and_then(|line| line.split_whitespace().nth(1))
+        .unwrap_or("/");
+
+    let file_path = match path.split('?').next().unwrap_or("/") {
+        "/" => dist_root.join("index.html"),
+        other => safe_dist_path(dist_root, other),
+    };
+
+    if file_path.is_file() {
+        let body = fs::read(&file_path)?;
+        let content_type = content_type(&file_path);
+        write_response(&mut stream, "200 OK", content_type, &body)?;
+    } else {
+        write_response(
+            &mut stream,
+            "404 Not Found",
+            "text/plain; charset=utf-8",
+            b"Not Found",
+        )?;
+    }
+
+    Ok(())
+}
+
+fn safe_dist_path(dist_root: &PathBuf, request_path: &str) -> PathBuf {
+    let mut path = PathBuf::new();
+    for component in std::path::Path::new(request_path).components() {
+        use std::path::Component;
+        match component {
+            Component::Normal(part) => path.push(part),
+            Component::CurDir => {}
+            _ => return dist_root.join("__invalid__"),
+        }
+    }
+    dist_root.join(path)
+}
+
+fn content_type(path: &PathBuf) -> &'static str {
+    match path.extension().and_then(|ext| ext.to_str()).unwrap_or("") {
+        "html" => "text/html; charset=utf-8",
+        "js" => "text/javascript; charset=utf-8",
+        "css" => "text/css; charset=utf-8",
+        "wasm" => "application/wasm",
+        "json" => "application/json; charset=utf-8",
+        "svg" => "image/svg+xml",
+        "png" => "image/png",
+        "ico" => "image/x-icon",
+        _ => "application/octet-stream",
+    }
+}
+
+fn write_response(
+    stream: &mut std::net::TcpStream,
+    status: &str,
+    content_type: &str,
+    body: &[u8],
+) -> Result<(), io::Error> {
+    write!(
+        stream,
+        "HTTP/1.1 {status}\r\nContent-Type: {content_type}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+        body.len()
+    )?;
+    stream.write_all(body)?;
+    Ok(())
 }
 
 #[cfg(any(

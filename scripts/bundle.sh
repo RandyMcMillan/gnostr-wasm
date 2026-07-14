@@ -88,11 +88,16 @@ test_bundle() {
   local app_path
   local html
   local app_pid=""
-  local index_url
+  local url="http://127.0.0.1:8080"
 
   app_path="$(bundle_app_path)"
   if [[ -z "$app_path" ]]; then
     echo "Missing bundled app; run scripts/bundle.sh --build first." >&2
+    exit 1
+  fi
+
+  if lsof -nP -iTCP:8080 -sTCP:LISTEN >/dev/null 2>&1; then
+    echo "Port 8080 is already in use; stop the existing listener first." >&2
     exit 1
   fi
 
@@ -120,14 +125,24 @@ test_bundle() {
     exit 1
   fi
 
-  index_url="$(python3 -c 'from pathlib import Path; import sys; print(Path(sys.argv[1]).resolve().as_uri())' "${app_path}/Contents/Resources/dist/index.html")"
-  html="$(curl -fsS "$index_url")"
+  for _ in $(seq 1 60); do
+    if html="$(curl -fsS "$url" 2>/dev/null)"; then
+      break
+    fi
+    sleep 1
+  done
+
+  if [[ -z "${html:-}" ]]; then
+    echo "Timed out waiting for $url" >&2
+    exit 1
+  fi
+
   printf '%s' "$html" | grep -F '<title>Ratzilla Demo</title>'
   printf '%s' "$html" | grep -F 'data-bin="gnostr-wasm"'
 
   cleanup
   trap - EXIT
-  printf 'Verified %s\n' "$index_url"
+  printf 'Verified %s\n' "$url"
 }
 
 if [[ "$build" == true ]]; then
